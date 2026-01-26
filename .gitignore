@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+outputs/
+mlruns/
+*.csv
+*.parquet
+.env
+artifacts/
+.DS_Store
+.idea/
+.vscode/
+.pytest_cache/
