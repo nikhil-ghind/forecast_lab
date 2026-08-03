@@ -1,0 +1,12 @@
+use_synthetic: true
+synthetic_days: 730
+test_periods: 90
+experiment_name: forecast_lab
+output_dir: outputs
+
+prophet_seasonality_mode: multiplicative
+changepoint_prior_scale: 0.05
+
+run_backtest: true
+backtest_initial: 365
+backtest_step: 30
