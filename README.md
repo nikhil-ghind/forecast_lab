@@ -2,6 +2,50 @@
 
 Time-series forecasting pipeline combining Prophet and Auto-ARIMA with inverse-MAE ensemble weighting, walk-forward backtesting, MLflow experiment tracking, and end-to-end Databricks notebooks.
 
+## Architecture
+
+```mermaid
+flowchart TB
+    CFG["configs/config.yaml"] --> RUN["src/pipeline/run_pipeline.py"]
+    RUN --> SRC{"use_synthetic?"}
+    SRC -->|"yes"| SYN["generate_synthetic<br/>trend + weekly and yearly seasonality + noise"]
+    SRC -->|"no"| CSV["load_csv<br/>renamed to ds / y, sorted"]
+    DBX["load_from_databricks<br/>Delta table via Spark"] -.-> DF
+    SYN --> DF["DataFrame(ds, y)"]
+    CSV --> DF
+
+    DF --> SPLIT["train_test_split<br/>last test_periods rows held out"]
+    SPLIT --> TRAIN["train"]
+    SPLIT --> TEST["test"]
+
+    subgraph ens["EnsembleForecaster"]
+        P["ProphetForecaster<br/>seasonality_mode, changepoint_prior_scale"]
+        A["ARIMAForecaster<br/>auto order search, ADF stationarity check"]
+        W["update_weights_from_validation<br/>inverse-MAE weights normalised to 1"]
+        BLEND["predict = weighted sum of member yhat"]
+    end
+    TRAIN --> P
+    TRAIN --> A
+    TEST --> W
+    P --> W
+    A --> W
+    W --> BLEND
+
+    BLEND --> EVAL["evaluate<br/>MAE, RMSE, MAPE, sMAPE"]
+    EVAL --> ML[("MLflow run 'ensemble_pipeline'<br/>config params, member weights, metrics")]
+
+    DF --> BT["walk_forward_validation<br/>expanding window, Prophet refit per fold"]
+    BT --> SUM["summarise_backtest<br/>mean metric per column"]
+    SUM --> ML
+    BT --> CSVOUT["outputs/backtest_results.csv"]
+
+    NB["databricks/notebooks/<br/>01_data_prep · 02_prophet_training · 03_arima_training · 04_compare_models"] -.-> ML
+```
+
+The backtest is an expanding window that refits the model at every step:
+
+<img src="docs/walk-forward.svg" alt="An expanding training window stepping forward through the series, refitting the model and scoring the next horizon each time" width="880">
+
 ## Overview
 
 - **Prophet** — additive/multiplicative seasonality, changepoint detection, uncertainty intervals, Prophet cross-validation diagnostics
@@ -36,18 +80,6 @@ Upload and run notebooks in order:
 4. `databricks/notebooks/04_compare_models.py` — side-by-side metrics table
 
 Configure the experiment path `/forecast_lab/*` in your Databricks MLflow workspace.
-
-## Architecture
-
-```
-load_csv / Databricks Delta
-    → train_test_split
-    → ProphetForecaster.fit()   ┐
-    → ARIMAForecaster.fit()     ├── EnsembleForecaster (inverse-MAE weights)
-    → evaluate() → MAE/RMSE/MAPE/sMAPE
-    → walk_forward_validation() → backtest CSV
-    → MLflow: params + metrics + model artifacts
-```
 
 ## Evaluation
 

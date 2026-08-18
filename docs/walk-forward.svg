@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 300" width="880" height="300" role="img" aria-label="An expanding training window steps forward through a time series; after each step the model is refit and scored on the next horizon">
+  <title>forecast_lab — expanding-window walk-forward backtest</title>
+
+  <text x="16" y="26" fill="#8b949e" font-family="Helvetica, Arial, sans-serif" font-size="16" font-weight="bold">walk_forward_validation — expanding window, refit every step</text>
+  <text x="16" y="48" fill="#8b949e" font-family="Helvetica, Arial, sans-serif" font-size="12">initial_train = 365 days · horizon = 30 days · step = 30 days</text>
+
+  <!-- timeline axis -->
+  <line x1="60" y1="200" x2="840" y2="200" stroke="#6e7681" stroke-width="1.5"/>
+  <g font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#8b949e">
+    <text x="60" y="222">day 0</text>
+    <text x="840" y="222" text-anchor="end">end of series</text>
+  </g>
+
+  <!-- series squiggle, purely indicative -->
+  <path d="M60 150 L100 138 L140 156 L180 132 L220 148 L260 126 L300 144 L340 120 L380 138 L420 116 L460 132 L500 110 L540 128 L580 106 L620 124 L660 102 L700 120 L740 98 L780 116 L820 96"
+        fill="none" stroke="#6e7681" stroke-width="1.5"/>
+
+  <!-- expanding train window -->
+  <g>
+    <rect x="60" y="90" height="110" rx="4" fill="none" stroke="#58a6ff" stroke-width="2.5">
+      <animate attributeName="width" values="300;390;480;570;660;300" keyTimes="0;0.2;0.4;0.6;0.8;1" dur="7.5s" repeatCount="indefinite"/>
+    </rect>
+    <text y="84" fill="#58a6ff" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold">
+      train — everything so far
+      <animate attributeName="x" values="66;66;66;66;66;66" dur="7.5s" repeatCount="indefinite"/>
+    </text>
+  </g>
+
+  <!-- horizon window, moves with the train edge -->
+  <g>
+    <rect y="90" width="90" height="110" rx="4" fill="none" stroke="#d29922" stroke-width="2.5">
+      <animate attributeName="x" values="360;450;540;630;720;360" keyTimes="0;0.2;0.4;0.6;0.8;1" dur="7.5s" repeatCount="indefinite"/>
+    </rect>
+    <text y="84" fill="#d29922" font-family="Helvetica, Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">
+      horizon
+      <animate attributeName="x" values="405;495;585;675;765;405" keyTimes="0;0.2;0.4;0.6;0.8;1" dur="7.5s" repeatCount="indefinite"/>
+    </text>
+  </g>
+
+  <!-- refit marker pulsing at the boundary -->
+  <g>
+    <circle cy="200" r="6" fill="#3fb950">
+      <animate attributeName="cx" values="360;450;540;630;720;360" keyTimes="0;0.2;0.4;0.6;0.8;1" dur="7.5s" repeatCount="indefinite"/>
+      <animate attributeName="r" values="9;5;9;5;9;5;9;5;9;5;9" dur="7.5s" repeatCount="indefinite"/>
+    </circle>
+    <text y="256" fill="#3fb950" font-family="Helvetica, Arial, sans-serif" font-size="12" text-anchor="middle">
+      refit + score
+      <animate attributeName="x" values="360;450;540;630;720;360" keyTimes="0;0.2;0.4;0.6;0.8;1" dur="7.5s" repeatCount="indefinite"/>
+    </text>
+  </g>
+
+  <text x="16" y="288" fill="#8b949e" font-family="Helvetica, Arial, sans-serif" font-size="12">Each fold builds a fresh model from model_factory(), records MAE / RMSE / MAPE / sMAPE with its window bounds, then advances by one step; summarise_backtest averages the folds.</text>
+</svg>
